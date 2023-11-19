@@ -1,0 +1,47 @@
+#To add GPT-3 to Google Sheets, we first need to obtain an API key from Open AI. Then, we can open
+#a Google Sheet and go to Extensions -> Apps Script. When the Apps Script tab opens, we must create
+#a new project and paste the following code, which enables us to write a prompt, add a cell and specify
+#the maximum number of words we want to generate:
+
+function runOpenAI(prompt, cell, maxWords) {
+    const API_KEY = "YourAPIkey";
+    maxTokens = 100
+    if (maxWords) {
+        maxTokens = maxWords * 0.75
+    }
+    model = "gpt-3.5-turbo"
+    prompt = prompt + cell + ":"
+    temperature = 0
+
+    // Set up the request body with the given parameters
+    const requestBody = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant that answers questions."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": temperature,
+        "max_tokens": maxTokens
+    };
+    console.log(requestBody)
+
+    // Set up the request options with the required headers
+    const requestOptions = {
+        "method": "POST",
+        "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + API_KEY
+        },
+        "payload": JSON.stringify(requestBody)
+    };
+
+    // Send the request to the GPT-3 API endpoint for completions
+    const response = UrlFetchApp.fetch("https://api.openai.com/v1/chat/completions", requestOptions);
+    console.log(response.getContentText())
+
+    // Get the response body as a JSON object
+    const responseBody = JSON.parse(response.getContentText());
+    //let answer= responseBody.choices[0]["text"].text
+    let answer = responseBody.choices[0]["message"]["content"]
+    return answer
+}
